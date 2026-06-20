@@ -1,0 +1,12 @@
+# ROS 2 workspaces
+build/
+install/
+log/
+
+# C++ compilation files
+*.o
+*.os
+*.so
+
+# VS Code settings
+.vscode/
