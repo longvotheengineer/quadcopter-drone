@@ -11,10 +11,15 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+# uav node
 add_executable(uav_node src/uav_node.cpp)
 ament_target_dependencies(uav_node rclcpp std_msgs)
+# ground station node
+add_executable(ground_station_node src/ground_station_node.cpp)
+ament_target_dependencies(ground_station_node rclcpp std_msgs)
 install(TARGETS
   uav_node
+  ground_station_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

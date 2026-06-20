@@ -20,8 +20,9 @@ public:
 
 private:
     void timer_callback() {
+        this->altitude_ += 0.5; // Simulate altitude change
         auto message = std_msgs::msg::Float64();
-        message.data = 10.0;
+        message.data = this->altitude_;
 
         RCLCPP_INFO(this->get_logger(), "[timer] triggered.");
         publisher_->publish(message);
@@ -29,6 +30,7 @@ private:
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr publisher_;
+    double altitude_ = 0.0;
 };
 
 int main(int argc, char **argv) {
