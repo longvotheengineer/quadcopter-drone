@@ -10,8 +10,9 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 add_executable(uav_node src/uav_node.cpp)
-ament_target_dependencies(uav_node rclcpp)
+ament_target_dependencies(uav_node rclcpp std_msgs)
 install(TARGETS
   uav_node
   DESTINATION lib/${PROJECT_NAME})
