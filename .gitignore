@@ -1,12 +1,32 @@
-# ROS 2 workspaces
+# ROS 2 Build/Install/Log directories
 build/
 install/
 log/
 
-# C++ compilation files
+# CMake & Make generated files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# C/C++ build artifacts
 *.o
 *.os
 *.so
+*.a
+*.out
 
-# VS Code settings
+# VS Code specific
 .vscode/
+*.code-workspace
+
+# Python (if you add Python nodes later)
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# OS specific (Mac/Windows hidden files)
+.DS_Store
+Thumbs.db
