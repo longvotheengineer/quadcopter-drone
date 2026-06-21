@@ -21,6 +21,9 @@ install(TARGETS
   uav_node
   ground_station_node
   DESTINATION lib/${PROJECT_NAME})
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
