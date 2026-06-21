@@ -10,6 +10,9 @@ public:
     UavNode() : Node("uav_node") {
         RCLCPP_INFO(this->get_logger(), "The node has started.");
         
+        // declare parameter
+        this->declare_parameter("param_altitude", 0.0);
+
         publisher_ = this->create_publisher<std_msgs::msg::Float64>(
             "uav_altitude", 10
         );
@@ -20,7 +23,8 @@ public:
 
 private:
     void timer_callback() {
-        this->altitude_ += 0.5; // Simulate altitude change
+        double param_altitude = this->get_parameter("param_altitude").as_double();
+        this->altitude_ += param_altitude; // Simulate altitude change
         auto message = std_msgs::msg::Float64();
         message.data = this->altitude_;
 
