@@ -1,7 +1,8 @@
 #include <chrono>
 #include <stdint.h>
 #include <rclcpp/rclcpp.hpp>
-#include "std_msgs/msg/float64.hpp"
+#include <std_msgs/msg/float64.hpp>
+#include <geometry_msgs/msg/point.hpp>
 
 #include <px4_msgs/msg/offboard_control_mode.hpp>
 #include <px4_msgs/msg/trajectory_setpoint.hpp>
@@ -15,9 +16,9 @@ public:
     GroundStationNode() : Node("ground_station_node") {
         RCLCPP_INFO(this->get_logger(), "The node has started.");
         
-        subscriber_ = this->create_subscription<std_msgs::msg::Float64>(
-            "uav_altitude", 10, std::bind(
-                &GroundStationNode::altitude_callback, this, _1
+        subscriber_ = this->create_subscription<geometry_msgs::msg::Point>(
+            "uav_position", 10, std::bind(
+                &GroundStationNode::target_position_callback, this, _1
             )
         );
 
@@ -47,9 +48,12 @@ public:
     }
 
 private:
-    void altitude_callback(const std_msgs::msg::Float64 & msg) {
-        target_altitude_ = msg.data;
-        RCLCPP_INFO(this->get_logger(), "Received target altitude: %f", target_altitude_);
+    void target_position_callback(const geometry_msgs::msg::Point & msg) {
+        target_x_ = msg.x;
+        target_y_ = msg.y;
+        target_z_ = msg.z;
+        RCLCPP_INFO(this->get_logger(), "Received target position: %f, %f, %f", 
+                                               target_x_, target_y_, target_z_);
     }
 
     void publish_offboard_control_mode() {
@@ -65,7 +69,7 @@ private:
 
     void publish_trajectory_setpoint() {
         px4_msgs::msg::TrajectorySetpoint msg{};
-        msg.position = {0.0, 0.0, -target_altitude_};
+        msg.position = {target_x_, target_y_, -target_z_};
         msg.yaw = -3.14;
         msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
         trajectory_setpoint_publisher_->publish(msg);
@@ -90,9 +94,12 @@ private:
         RCLCPP_INFO(this->get_logger(), "Sending ARM command. Preparing for liftoff...");
     }
 
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr subscriber_;
-    float target_altitude_ = 5.0;
-    // px4 publisher and hearbeat timer
+    // declare target position subscriber and variables
+    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr subscriber_;
+    float target_x_ = 0.0;
+    float target_y_ = 0.0;
+    float target_z_ = 0.0;
+    // declare px4 publisher and heartbeat timer
     rclcpp::Publisher<px4_msgs::msg::OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
     rclcpp::Publisher<px4_msgs::msg::TrajectorySetpoint>::SharedPtr trajectory_setpoint_publisher_;
     rclcpp::Publisher<px4_msgs::msg::VehicleCommand>::SharedPtr vehicle_command_publisher_;
