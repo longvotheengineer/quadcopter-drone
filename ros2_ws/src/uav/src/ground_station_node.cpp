@@ -7,6 +7,7 @@
 #include <px4_msgs/msg/offboard_control_mode.hpp>
 #include <px4_msgs/msg/trajectory_setpoint.hpp>
 #include <px4_msgs/msg/vehicle_command.hpp>
+#include <px4_msgs/msg/vehicle_odometry.hpp>
 
 using std::placeholders::_1;
 using namespace std::chrono_literals;
@@ -22,7 +23,7 @@ public:
             )
         );
 
-        // px4 publisher and hearbeat timer
+        // publisher: px4
         offboard_control_mode_publisher_ = this->create_publisher<px4_msgs::msg::
             OffboardControlMode>("/fmu/in/offboard_control_mode", 10);
         trajectory_setpoint_publisher_ = this->create_publisher<px4_msgs::msg::
@@ -30,11 +31,22 @@ public:
         vehicle_command_publisher_ = this->create_publisher<px4_msgs::msg::
             VehicleCommand>("/fmu/in/vehicle_command", 10);
 
-        offboard_setpoint_counter_ = 0;
+        // subscriber: odometry
+        odometry_subscriber_ = this->create_subscription<px4_msgs::msg::VehicleOdometry>(
+            "/fmu/out/vehicle_odometry", rclcpp::QoS(10).best_effort(), std::bind(
+                &GroundStationNode::odometry_callback, this, _1
+            )
+        );
 
+        // timer: heartbeat
+        offboard_setpoint_counter_ = 0;
         auto heartbeat_timer_callback = [this]() -> void {
             publish_offboard_control_mode();
             publish_trajectory_setpoint();
+
+            // test: log current position (feedback from px4-odometry)
+            RCLCPP_INFO(this->get_logger(), "Current Position: x:%.2f | y:%.2f | z:%.2f",
+                                                        current_x_, current_y_, -current_z_);
 
             if (offboard_setpoint_counter_ == 10) {
                 this->publish_vehicle_command(px4_msgs::msg::VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6); // 1 = Custom Mode, 6 = OFFBOARD
@@ -54,6 +66,12 @@ private:
         target_z_ = msg.z;
         RCLCPP_INFO(this->get_logger(), "Received target position: %f, %f, %f", 
                                                target_x_, target_y_, target_z_);
+    }
+
+    void odometry_callback(const px4_msgs::msg::VehicleOdometry & msg) {
+        current_x_ = msg.position[0];
+        current_y_ = msg.position[1];
+        current_z_ = msg.position[2];
     }
 
     void publish_offboard_control_mode() {
@@ -94,15 +112,23 @@ private:
         RCLCPP_INFO(this->get_logger(), "Sending ARM command. Preparing for liftoff...");
     }
 
-    // declare target position subscriber and variables
-    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr subscriber_;
+    // declare: target position (send to px4-offboard)
     float target_x_ = 0.0;
     float target_y_ = 0.0;
     float target_z_ = 0.0;
-    // declare px4 publisher and heartbeat timer
+    // declare: current position (feedback from px4-odemetry)
+    float current_x_ = 0.0;
+    float current_y_ = 0.0;
+    float current_z_ = 0.0;
+    // declare: publisher: px4
     rclcpp::Publisher<px4_msgs::msg::OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
     rclcpp::Publisher<px4_msgs::msg::TrajectorySetpoint>::SharedPtr trajectory_setpoint_publisher_;
     rclcpp::Publisher<px4_msgs::msg::VehicleCommand>::SharedPtr vehicle_command_publisher_;
+    // declare: subscriber: target position
+    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr subscriber_;
+    // declare: subscriber: px4
+    rclcpp::Subscription<px4_msgs::msg::VehicleOdometry>::SharedPtr odometry_subscriber_;
+    // declare: timer: heartbeat
     rclcpp::TimerBase::SharedPtr heartbeat_timer_;
     uint64_t offboard_setpoint_counter_;
 };

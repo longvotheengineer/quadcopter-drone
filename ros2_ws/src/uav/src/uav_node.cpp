@@ -11,24 +11,24 @@ public:
     UavNode() : Node("uav_node") {
         RCLCPP_INFO(this->get_logger(), "The node has started.");
         
-        // declare parameter
+        // declare: parameter
         this->declare_parameter("param_altitude", 0.0);
 
-        // declare publisher
+        // declare: publisher
         publisher_ = this->create_publisher<std_msgs::msg::Float64>(
             "uav_altitude", 10
         );
 
-        // declare timer
-        timer_ = this->create_wall_timer(
-            500ms, std::bind(&UavNode::timer_callback, this)
-        );
-
-        // delare service
+        // declare: service
         service_ = this->create_service<std_srvs::srv::Trigger>(
             "uav_service",
             std::bind(&UavNode::uav_service_callback, this,
             std::placeholders::_1, std::placeholders::_2)
+        );
+
+        // declare: timer
+        timer_ = this->create_wall_timer(
+            500ms, std::bind(&UavNode::timer_callback, this)
         );
     }
 
@@ -45,15 +45,11 @@ private:
 
     void uav_service_callback(
         const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-        std::shared_ptr<std_srvs::srv::Trigger::Response> response
-    ) {
+        std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
         (void) request;
         
-        this->altitude_ = 0.0; // Reset altitude
         response->success = true;
-        response->message = "Successfully reset the altitude to 0.0.";
-        RCLCPP_WARN(this->get_logger(), "[service] triggered. "
-                                        "Altitude reset to 0.0.");
+        response->message = "Successfully triggered the uav_service.";
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
