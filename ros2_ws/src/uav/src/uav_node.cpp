@@ -14,9 +14,12 @@ public:
         // declare parameter
         this->declare_parameter("param_altitude", 0.0);
 
+        // declare publisher
         publisher_ = this->create_publisher<std_msgs::msg::Float64>(
             "uav_altitude", 10
         );
+
+        // declare timer
         timer_ = this->create_wall_timer(
             500ms, std::bind(&UavNode::timer_callback, this)
         );
@@ -31,13 +34,13 @@ public:
 
 private:
     void timer_callback() {
-        double param_altitude = this->get_parameter("param_altitude").as_double();
-        this->altitude_ += param_altitude; // Simulate altitude change
-        auto message = std_msgs::msg::Float64();
-        message.data = this->altitude_;
+        // double param_altitude = this->get_parameter("param_altitude").as_double();
+        // this->altitude_ = 7.0; // Simulate altitude change
+        // auto message = std_msgs::msg::Float64();
+        // message.data = this->altitude_;
 
-        RCLCPP_INFO(this->get_logger(), "[timer] triggered.");
-        publisher_->publish(message);
+        // RCLCPP_INFO(this->get_logger(), "[timer] triggered.");
+        // publisher_->publish(message);
     }
 
     void uav_service_callback(

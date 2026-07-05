@@ -44,16 +44,12 @@ public:
             }
         };
         heartbeat_timer_ = this->create_wall_timer(100ms, heartbeat_timer_callback);
-
     }
 
 private:
-    void altitude_callback(const std_msgs::msg::Float64 & msg) const {
-        // if (msg.data > 5.0) {
-        //     RCLCPP_INFO(this->get_logger(), "UAV has passed 5.0 meters. Current altitude: %f", msg.data);
-        // } else {
-        //     RCLCPP_INFO(this->get_logger(), "UAV is below 5.0 meters. Current altitude: %f", msg.data);
-        // }
+    void altitude_callback(const std_msgs::msg::Float64 & msg) {
+        target_altitude_ = msg.data;
+        RCLCPP_INFO(this->get_logger(), "Received target altitude: %f", target_altitude_);
     }
 
     void publish_offboard_control_mode() {
@@ -69,7 +65,7 @@ private:
 
     void publish_trajectory_setpoint() {
         px4_msgs::msg::TrajectorySetpoint msg{};
-        msg.position = {0.0, 0.0, -5.0};
+        msg.position = {0.0, 0.0, -target_altitude_};
         msg.yaw = -3.14;
         msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
         trajectory_setpoint_publisher_->publish(msg);
@@ -95,6 +91,7 @@ private:
     }
 
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr subscriber_;
+    float target_altitude_ = 5.0;
     // px4 publisher and hearbeat timer
     rclcpp::Publisher<px4_msgs::msg::OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
     rclcpp::Publisher<px4_msgs::msg::TrajectorySetpoint>::SharedPtr trajectory_setpoint_publisher_;
