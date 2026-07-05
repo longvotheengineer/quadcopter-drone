@@ -1,32 +1,91 @@
-# ROS 2 Build/Install/Log directories
+# ------------------------------------------------------------------------------
+# ROS 2 & Colcon Build System
+# ------------------------------------------------------------------------------
 build/
 install/
 log/
+.colcon_test_results/
 
-# CMake & Make generated files
+# ------------------------------------------------------------------------------
+# Data Recording & Telemetry
+# ------------------------------------------------------------------------------
+# ROS 2 Bag files
+rosbag2_*/
+*.db3
+*.mcap
+
+# PX4 ULog and MAVLink telemetry files
+*.ulg
+*.bin
+*.tlog
+
+# ------------------------------------------------------------------------------
+# PX4 Autopilot & Submodules
+# ------------------------------------------------------------------------------
+# Ignore embedded repos to prevent gitlink issues
+ros2_ws/src/px4_msgs/
+
+# ------------------------------------------------------------------------------
+# Perception, CV, & Navigation (SLAM)
+# ------------------------------------------------------------------------------
+# Point cloud data
+*.pcd
+
+# Machine Learning weights (YOLO, object detection, etc.)
+*.pt
+*.pth
+*.onnx
+*.engine
+*.pb
+*.weights
+
+# ------------------------------------------------------------------------------
+# C / C++ & CMake Build Artifacts
+# ------------------------------------------------------------------------------
 CMakeCache.txt
 CMakeFiles/
 Makefile
 cmake_install.cmake
 install_manifest.txt
-
-# C/C++ build artifacts
+compile_commands.json
 *.o
 *.os
 *.so
 *.a
 *.out
+*.core
 
-# VS Code specific
-.vscode/
-*.code-workspace
-
-# Python (if you add Python nodes later)
+# ------------------------------------------------------------------------------
+# Python Environment & Cache
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg
 *.egg-info/
+.venv/
+venv/
+env/
+.env
 
-# OS specific (Mac/Windows hidden files)
+# ------------------------------------------------------------------------------
+# IDEs & Editor Configuration
+# ------------------------------------------------------------------------------
+.vscode/
+*.code-workspace
+.idea/
+.clangd/
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------------------------
+# OS Specific Files
+# ------------------------------------------------------------------------------
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
