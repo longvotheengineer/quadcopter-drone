@@ -1,4 +1,4 @@
-# UAV Simulation: Guidance, Perception, and Navigation
+# UAV Simulation: Guidance, Navigation, and Control (GNC)
 
 [![ROS 2 Humble](https://img.shields.io/badge/ROS_2-Humble-blue?logo=ros&logoColor=white)](https://docs.ros.org/en/humble/)
 ![C++](https://img.shields.io/badge/C++-00599C?logo=c%2B%2B&logoColor=white)
