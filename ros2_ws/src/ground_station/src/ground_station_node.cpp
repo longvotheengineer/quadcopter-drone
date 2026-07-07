@@ -68,11 +68,11 @@ void GroundStationNode::publish_vehicle_command(uint16_t command, float param1, 
 
 // subscriber
 void GroundStationNode::target_position_callback(const geometry_msgs::msg::Point & msg) {
-    target_x_ = msg.x;
-    target_y_ = msg.y;
-    target_z_ = msg.z;
+    final_x_ = msg.x;
+    final_y_ = msg.y;
+    final_z_ = msg.z;
     RCLCPP_INFO(this->get_logger(), "Received target position: %f, %f, %f", 
-                                            target_x_, target_y_, target_z_);
+                                            final_x_, final_y_, final_z_);
 }
 
 void GroundStationNode::odometry_callback(const px4_msgs::msg::VehicleOdometry & msg) {
@@ -83,11 +83,12 @@ void GroundStationNode::odometry_callback(const px4_msgs::msg::VehicleOdometry &
 
 // timer
 void GroundStationNode::heartbeat_timer_callback() {
+    update_target_position();
     publish_offboard_control_mode();
     publish_trajectory_setpoint();
 
-    RCLCPP_INFO(this->get_logger(), "Current Position: x:%.2f | y:%.2f | z:%.2f",       // test: log current position 
-                                                current_x_, current_y_, -current_z_);   // (feedback from px4-odometry)
+    RCLCPP_INFO(this->get_logger(), "Current Position: x:%.2f | y:%.2f | z:%.2f | %.2f | %.2f | %.2f",       // test: log current position 
+                                                current_x_, current_y_, -current_z_, target_x_, target_y_, -target_z_);   // (feedback from px4-odometry)
 
     if (offboard_setpoint_counter_ == 10) {
         this->publish_vehicle_command(px4_msgs::msg::VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6); // 1 = Custom Mode, 6 = OFFBOARD
@@ -98,11 +99,32 @@ void GroundStationNode::heartbeat_timer_callback() {
     }
 };
 
-// px4: 
+// px4 
 void GroundStationNode::arm() {
     publish_vehicle_command(px4_msgs::msg::VehicleCommand::VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0);
     RCLCPP_INFO(this->get_logger(), "Sending ARM command. Preparing for liftoff...");
 }
+
+// guidance: trajectory generation
+void GroundStationNode::update_target_position() {
+    if (target_x_ < final_x_) {
+        target_x_ += std::min(pos_step_size_, final_x_ - target_x_);
+    } else if (target_x_ > final_x_) {
+        target_x_ -= std::min(pos_step_size_, target_x_ - final_x_);
+    }
+
+    if (target_y_ < final_y_) {
+        target_y_ += std::min(pos_step_size_, final_y_ - target_y_);
+    } else if (target_y_ > final_y_) {
+        target_y_ -= std::min(pos_step_size_, target_y_ - final_y_);
+    }
+
+    if (target_z_ < final_z_) {
+        target_z_ += std::min(pos_step_size_, final_z_ - target_z_);
+    } else if (target_z_ > final_z_) {
+        target_z_ -= std::min(pos_step_size_, target_z_ - final_z_);
+    }
+};
 
 int main(int argc, char **argv) {
     rclcpp::init(argc, argv);

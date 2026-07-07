@@ -26,10 +26,18 @@ private:
     // timer
     void heartbeat_timer_callback();
 
-    // px4: 
+    // px4 
     void arm();
 
-    // declare: target position (send to px4-offboard)
+    // guidance: trajectory generation
+    void update_target_position();
+
+    // declare: final target position
+    float final_x_ = 0.0;
+    float final_y_ = 0.0;
+    float final_z_ = 0.0;
+    float pos_step_size_ = 0.1;
+    // declare: current target position (send to px4-offboard)
     float target_x_ = 0.0;
     float target_y_ = 0.0;
     float target_z_ = 0.0;
