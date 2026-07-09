@@ -5,12 +5,6 @@ using namespace std::chrono_literals;
 
 GroundStationNode::GroundStationNode() : Node("ground_station_node") {
     RCLCPP_INFO(this->get_logger(), "The node has started.");
-    
-    subscriber_ = this->create_subscription<geometry_msgs::msg::Point>(
-        "uav_position", 10, std::bind(
-            &GroundStationNode::target_position_callback, this, _1
-        )
-    );
 
     // publisher: px4
     offboard_control_mode_publisher_ = this->create_publisher<px4_msgs::msg::
@@ -19,11 +13,20 @@ GroundStationNode::GroundStationNode() : Node("ground_station_node") {
         TrajectorySetpoint>("/fmu/in/trajectory_setpoint", 10);
     vehicle_command_publisher_ = this->create_publisher<px4_msgs::msg::
         VehicleCommand>("/fmu/in/vehicle_command", 10);
+    // publisher: rviz
+    rviz_pose_publisher_ = this->create_publisher<geometry_msgs::msg::
+        PoseStamped>("rviz_pose", 10);
 
     // subscriber: odometry
     odometry_subscriber_ = this->create_subscription<px4_msgs::msg::VehicleOdometry>(
         "/fmu/out/vehicle_odometry", rclcpp::QoS(10).best_effort(), std::bind(
             &GroundStationNode::odometry_callback, this, _1
+        )
+    );
+    // subscriber: target position
+    target_position_subscriber_ = this->create_subscription<geometry_msgs::msg::Point>(
+        "uav_position", 10, std::bind(
+            &GroundStationNode::target_position_callback, this, _1
         )
     );
 
@@ -32,7 +35,7 @@ GroundStationNode::GroundStationNode() : Node("ground_station_node") {
         100ms, [this]() {heartbeat_timer_callback();});
 }
 
-// publisher
+// publisher: px4
 void GroundStationNode::publish_offboard_control_mode() {
     px4_msgs::msg::OffboardControlMode msg{};
     msg.position = true;
@@ -66,6 +69,17 @@ void GroundStationNode::publish_vehicle_command(uint16_t command, float param1, 
     vehicle_command_publisher_->publish(msg);
 }
 
+// publisher: rviz
+void GroundStationNode::publish_rviz_pose(const px4_msgs::msg::VehicleOdometry & msg) {
+    geometry_msgs::msg::PoseStamped pose_msg{};
+    pose_msg.header.stamp = this->get_clock()->now();
+    pose_msg.header.frame_id = "map";
+    pose_msg.pose.position.x = msg.position[1];
+    pose_msg.pose.position.y = msg.position[0];
+    pose_msg.pose.position.z = -msg.position[2];
+    rviz_pose_publisher_->publish(pose_msg);
+}
+
 // subscriber
 void GroundStationNode::target_position_callback(const geometry_msgs::msg::Point & msg) {
     final_x_ = msg.x;
@@ -79,6 +93,8 @@ void GroundStationNode::odometry_callback(const px4_msgs::msg::VehicleOdometry &
     current_x_ = msg.position[0];
     current_y_ = msg.position[1];
     current_z_ = msg.position[2];
+
+    publish_rviz_pose(msg);
 }
 
 // timer

@@ -3,6 +3,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float64.hpp>
 #include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 
 #include <px4_msgs/msg/offboard_control_mode.hpp>
 #include <px4_msgs/msg/trajectory_setpoint.hpp>
@@ -14,11 +15,13 @@ public:
     GroundStationNode();
 
 private:
-    // publisher
+    // publisher: px4
     void publish_offboard_control_mode();
     void publish_trajectory_setpoint();
     void publish_vehicle_command(uint16_t command, float param1 = 0.0, float param2 = 0.0);
-    
+    // publisher: rviz
+    void publish_rviz_pose(const px4_msgs::msg::VehicleOdometry & msg);
+
     // subscriber
     void target_position_callback(const geometry_msgs::msg::Point & msg);
     void odometry_callback(const px4_msgs::msg::VehicleOdometry & msg);
@@ -49,8 +52,10 @@ private:
     rclcpp::Publisher<px4_msgs::msg::OffboardControlMode>::SharedPtr offboard_control_mode_publisher_;
     rclcpp::Publisher<px4_msgs::msg::TrajectorySetpoint>::SharedPtr trajectory_setpoint_publisher_;
     rclcpp::Publisher<px4_msgs::msg::VehicleCommand>::SharedPtr vehicle_command_publisher_;
+    // declare: publisher: rviz
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr rviz_pose_publisher_;
     // declare: subscriber: target position
-    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr subscriber_;
+    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr target_position_subscriber_;
     // declare: subscriber: px4
     rclcpp::Subscription<px4_msgs::msg::VehicleOdometry>::SharedPtr odometry_subscriber_;
     // declare: timer: heartbeat
